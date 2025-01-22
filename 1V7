@@ -1,63 +1,44 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import sympy as sp
 
 # Paramètres
-L = 1          # Longueur de la barre
-nx = 100       # Nombre de points en espace
-D = 0.01       # Diffusivité thermique
-T = 2.0        # Temps total
-dx = L / (nx - 1)       # Discrétisation spatiale
-C = 0.03       # Coefficient pour le terme advection
+L = 1.0              # Longueur du domaine
+T = 0.5              # Temps total
+Nx = 50              # Nombre de points spatiaux
+Nt = 1000            # Nombre de points temporels
+alpha = 0.01         # Diffusivité
+v = 0.1              # Vitesse de convection
+f = lambda x, t: 0   # Terme source
 
-# Calcul d'un dt respectant la condition CFL
-dt_diff = dx**2 / (2 * D)  # Pour la diffusion
-dt_adv = dx / C            # Pour l'advection
-dt = min(dt_diff, dt_adv) * 0.9  # Facteur de sécurité
-nt = int(T / dt)
+# Discrétisation
+x = np.linspace(0, L, Nx)
+dx = x[1] - x[0]
+dt = T / Nt
+u = np.zeros((Nt, Nx))
 
-x = np.linspace(0, L, nx)
-u = np.zeros(nx)        # Initialisation de la température
-u_mat = np.zeros((nt, nx))  # Matrice de solution
-u_mat[0, :] = u
+# Conditions initiales
+u[0, :] = np.sin(np.pi * x)  # Exemple de condition initiale
 
-# Fonction exacte
-def u_exact(x, t, D=D):
-    return np.sin(np.pi * x) * (1 + t)
-
-# Fonction source
-x_sym, t_sym = sp.symbols('x t')
-u_ex = (1 / sp.sqrt(2 * sp.pi)) * sp.exp(-x_sym**2 / 2) * (1 + t_sym)
-du_dx = sp.diff(u_ex, x_sym)
-du_dx_2 = sp.diff(du_dx, x_sym)
-du_dt = sp.diff(u_ex, t_sym)
-f = du_dt - D * du_dx_2 + C * du_dx
-
-def fonction_f(n, L=L, f=f):
-    return float(f.subs({x_sym: L, t_sym: n * dt}))
+# Conditions aux limites
+def apply_boundary_conditions(u_n):
+    u_n[0] = 0  # Dirichlet à gauche
+    u_n[-1] = 0 # Dirichlet à droite
+    return u_n
 
 # Boucle temporelle
-for n in range(1, nt):
-    u_new = u.copy()
-    for i in range(1, nx - 1):
-        # Schéma explicite avec diffusion et advection (upwind)
-        u_new[i] = (u[i]
-                    + D * dt / dx**2 * (u[i + 1] - 2 * u[i] + u[i - 1])
-                    - C * dt / dx * (u[i] - u[i - 1])  # Upwind
-                    + fonction_f(n) * dt)
-    u = u_new.copy()
-    u_mat[n, :] = u
+for n in range(0, Nt - 1):
+    for i in range(1, Nx - 1):
+        convection = -v * (u[n, i] - u[n, i-1]) / dx
+        diffusion = alpha * (u[n, i+1] - 2*u[n, i] + u[n, i-1]) / dx**2
+        source = f(x[i], n * dt)
+        u[n+1, i] = u[n, i] + dt * (convection + diffusion + source)
+    u[n+1, :] = apply_boundary_conditions(u[n+1, :])
 
-# Tracé
-plt.figure(1)
-time_steps_to_plot = [0, int(0.5 / dt), int(1.0 / dt), nt - 1]
-
-for t_index in time_steps_to_plot:
-    plt.plot(x, u_mat[t_index, :], label=f'u_numérique (t={t_index * dt:.2f})')
-    #plt.plot(x, u_exact(x, t_index * dt), linestyle='--', label=f'u_exact (t={t_index * dt:.2f})')
-
-plt.xlabel('Position x')
-plt.ylabel('u')
-plt.title('Évolution de la solution numérique et exacte')
+# Affichage des résultats
+for n in range(0, Nt, Nt // 10):
+    plt.plot(x, u[n, :], label=f"t={n*dt:.2f}")
+plt.xlabel("x")
+plt.ylabel("u(x, t)")
 plt.legend()
+plt.title("Équation de la chaleur avec convection et diffusion")
 plt.show()
