@@ -30,6 +30,13 @@ u_mat[0, :] = u
 def function_f(x, t):
     return np.sin(np.pi * x) + D * np.pi**2 * np.sin(np.pi * x) * (1 + t) + C * np.pi * np.cos(np.pi * x) * (1 + t)
 
+# Solution exacte
+def u_exact(x, t):
+    return np.sin(np.pi * x) * (1 + t)
+
+# Calcul de l'erreur en fonction du temps
+erreurs = []
+
 # Boucle temporelle
 for n in range(0, nt):
     u_new = u.copy()
@@ -39,25 +46,39 @@ for n in range(0, nt):
     u = u_new.copy()
     u_mat[n, :] = u
 
-# Affichage
+    # Calcul de l'erreur pour ce temps
+    erreur_temp = np.linalg.norm(u - u_exact(np.linspace(0, L, nx), n*dt))  # Norme L2 de l'erreur
+    erreurs.append(erreur_temp)
+
+# Affichage de l'erreur en fonction du temps
+plt.plot(np.linspace(0, T, nt), erreurs)
+plt.xlabel('Temps t')
+plt.ylabel('Erreur L2')
+plt.title('Erreur en fonction du temps')
+plt.grid(True)
+plt.show()
+
+# Affichage de la solution numérique et de la solution exacte en fonction du temps à x = L/2
+x_fixed = L/2  # Position fixe pour observer la température en fonction du temps
+x_index = int(x_fixed / dx)  # L'indice correspondant à x = L/2
+
+# Calcul de la solution exacte à chaque instant de temps
+u_exact_values = u_exact(x_fixed, np.linspace(0, T, nt))  # Solution exacte en fonction du temps
+
+# Tracer la solution numérique et exacte en fonction du temps
+plt.plot(np.linspace(0, T, nt), u_mat[:, x_index], label='Solution numérique', linestyle='--')
+plt.plot(np.linspace(0, T, nt), u_exact_values, label='Solution exacte', linestyle='-')
+plt.xlabel('Temps t')
+plt.ylabel('Température')
+plt.title('Comparaison de la solution numérique et exacte à x = {}'.format(x_fixed))
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Affichage de la solution dans l'ensemble du domaine
 plt.imshow(u_mat, extent=[0, L, T, 0], aspect='auto', cmap='hot')
 plt.colorbar()
 plt.xlabel('Position x')
 plt.ylabel('Temps t')
 plt.title('Évolution de la chaleur en 1D avec source F(x)')
 plt.show()
-
-# Calcul de la solution exacte
-def u_exact(x, t):
-    return np.sin(np.pi * x) * (1 + t)
-
-# Calcul de l'erreur relative
-erreur_absolute = np.zeros(nx)
-norme_u_exacte = np.linalg.norm(u_exact(np.linspace(0, L, nx), T))  # Norme L2 de la solution exacte au temps final
-for i in range(nx):
-    erreur_absolute[i] = u[i] - u_exact(i * dx, T)  # Erreur à chaque point spatial
-
-erreur_L2 = np.linalg.norm(erreur_absolute)  # Norme L2 de l'erreur
-erreur_relative = erreur_L2 / norme_u_exacte  # Erreur relative
-
-print("Erreur relative : ", erreur_relative)
