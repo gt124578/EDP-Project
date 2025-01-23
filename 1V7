@@ -71,3 +71,14 @@ plt.xlabel('Position x')
 plt.ylabel('Temps t')
 plt.title('Évolution de la chaleur en 1D avec source F(x)')
 plt.show()
+L2_error = np.sqrt(np.sum((u - u_exact_mat)**2, axis=1) * dx)  # Somme sur l'espace
+time = np.arange(0, nt) * dt
+
+# Tracer l'erreur L2 en fonction du temps
+plt.plot(time, L2_error, label="Erreur L2")
+plt.xlabel("Temps")
+plt.ylabel("Erreur L2")
+plt.legend()
+plt.grid()
+plt.show()
+
