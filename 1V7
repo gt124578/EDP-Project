@@ -2,43 +2,72 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Paramètres
-L = 1.0              # Longueur du domaine
-T = 0.5              # Temps total
-Nx = 50              # Nombre de points spatiaux
-Nt = 1000            # Nombre de points temporels
-alpha = 0.01         # Diffusivité
-v = 0.1              # Vitesse de convection
-f = lambda x, t: 0   # Terme source
+L = 1.0     # Longueur de la barre
+T = 2.0      # Temps total
+nx = 100     # Nombre de points en espace
+dt = 0.001   # Pas de temps
+D = 0.01     # Diffusivité thermique
+C =0.03        # Coefficient pour le terme advection
+dx = L / (nx - 1)   # Discrétisation en espace
+nt = int(T / dt)    # Discrétisation en temps
 
-# Discrétisation
-x = np.linspace(0, L, Nx)
-dx = x[1] - x[0]
-dt = T / Nt
-u = np.zeros((Nt, Nx))
+# Initialisation des matrices de température
+u = np.zeros((nt, nx))  # Initialisation de la température pour tous les temps
 
-# Conditions initiales
-u[0, :] = np.sin(np.pi * x)  # Exemple de condition initiale
+def function_f(x, t):
+    """Terme source."""
+    return np.sin(np.pi * x) + D * (np.pi**2) * np.sin(np.pi * x) * (1 + t) + C * np.pi * np.cos(np.pi * x) * (1 + t)
+
+# Condition initiale: distribution initiale constante
+u[0, :] = 1  # constante sur la longueur de la barre
 
 # Conditions aux limites
 def apply_boundary_conditions(u_n):
+    """Applique les conditions aux limites Dirichlet."""
     u_n[0] = 0  # Dirichlet à gauche
     u_n[-1] = 0 # Dirichlet à droite
     return u_n
 
 # Boucle temporelle
-for n in range(0, Nt - 1):
-    for i in range(1, Nx - 1):
-        convection = -v * (u[n, i] - u[n, i-1]) / dx
-        diffusion = alpha * (u[n, i+1] - 2*u[n, i] + u[n, i-1]) / dx**2
-        source = f(x[i], n * dt)
-        u[n+1, i] = u[n, i] + dt * (convection + diffusion + source)
-    u[n+1, :] = apply_boundary_conditions(u[n+1, :])
+for n in range(0, nt - 1):
+    for i in range(1, nx - 1):
+        convection = -C * (u[n, i + 1] - u[n, i - 1]) / (2 * dx)  # Formule centrée pour le terme de convection
+        diffusion = D * (u[n, i + 1] - 2 * u[n, i] + u[n, i - 1]) / dx**2
+        source = function_f(i*dx, n * dt)
+        u[n + 1, i] = u[n, i] + dt * (convection + diffusion + source)
+    u[n + 1, :] = apply_boundary_conditions(u[n + 1, :])
+
+
+def u_exact(x, t, D=D):
+    return (1/np.sqrt(2*np.pi))*np.exp((-x**2)/2)*(1+t)
+# Calcul de l'erreur en norme L2
+x = np.linspace(0, L, nx)
+t = np.linspace(0, T, nt)
+u_exact_mat = np.zeros((nt, nx))
+for n in range(nt):
+    for i in range(nx):
+        u_exact_mat[n, i] = u_exact(x[i], t[n])
+
 
 # Affichage des résultats
-for n in range(0, Nt, Nt // 10):
-    plt.plot(x, u[n, :], label=f"t={n*dt:.2f}")
+x = np.linspace(0, L, nx)  # Ajout du maillage spatial
+for n in range(0, nt, nt // 5):
+    plt.plot(x, u[n, :], label=f"t={n * dt:.2f}")
+
 plt.xlabel("x")
 plt.ylabel("u(x, t)")
 plt.legend()
 plt.title("Équation de la chaleur avec convection et diffusion")
+plt.show()
+L2_error = np.sqrt(np.sum((u - u_exact_mat)**2) * dx * dt)
+print(f"Erreur en norme L2: {L2_error}")
+L2_relative=np.linalg.norm(u_exact_mat)/np.linalg.norm(u)
+print(f"Erreur relative L2: {(L2_relative)*100}")
+
+# Affichage
+plt.imshow(u, extent=[0, L, T, 0], aspect='auto', cmap='hot')
+plt.colorbar()
+plt.xlabel('Position x')
+plt.ylabel('Temps t')
+plt.title('Évolution de la chaleur en 1D avec source F(x)')
 plt.show()
