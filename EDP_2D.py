@@ -101,7 +101,7 @@ plt.title("Variation de la température en fonction de x pour différents t")
 plt.show()
 
 # Tracer l'erreur L2 en fonction du temps
-L2_error_time=np.linalg.norm(u-u_exact_mat,axis=(1,2))/np.linalg.norm(u_exact_mat,axis=(1,2))
+L2_error_time=np.sqrt(np.sum((u - u_exact_mat)**2, axis=(1, 2)) * dx * dy)
 
 plt.figure()
 plt.plot(t, L2_error_time, label="Erreur L2")
