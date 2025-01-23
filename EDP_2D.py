@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sympy as sp
 
 # Paramètres
 Lx, Ly = 1.0, 1.0  # Dimensions du domaine
@@ -10,8 +11,9 @@ dx = Lx / (nx - 1)
 dy = Ly / (ny - 1)
 dt = min(dx, dy)**2 / (4 * D)  # Pas de temps
 nt = int(T / dt)  # Discrétisation en temps
-Cx=0.03 #Conductivité selon x
-Cy=0.01 #Conductivité selon y
+Cx = 0.03  # Coefficient de convection selon x
+Cy = 0.02  # Coefficient de convection selon y
+
 # Initialisation des matrices de température
 u = np.zeros((nt, nx, ny))
 x = np.linspace(0, Lx, nx)
@@ -19,9 +21,28 @@ y = np.linspace(0, Ly, ny)
 t = np.linspace(0, T, nt)
 X, Y = np.meshgrid(x, y)
 
+
+#Permet de calculer f(x,y,t) pour u quelconque par le calcul formel, il suffit de modifier u_ex dans la fonction
+def determinate_f():
+    a, b, u = sp.symbols('a b u') #les variables sont a, b et u pour la résolution formelle 
+    u_ex=sp.sin(sp.pi * a) * sp.sin(sp.pi * b) * (1 + u)
+    du_dx = sp.diff(u_ex, a)
+    du_dy = sp.diff(u_ex, b)
+    du_dx_2 = sp.diff(du_dx, a)
+    du_dy_2 = sp.diff(du_dx, b)
+    du_dt = sp.diff(u_ex, u)
+    f = du_dt - D * (du_dx_2+du_dy_2) + Cx * du_dx + Cy * du_dy
+    print(f)
+    return f
+
+# a, b, u = sp.symbols('a b u')
+# f=determinate_f()
+
 def function_f(x, y, t):
     """Terme source."""
-    return np.sin(np.pi * x) * np.sin(np.pi * y) + D * (np.pi**2) * np.sin(np.pi * x) * np.sin(np.pi * y) * (1 + t)
+    return D*np.pi**2*(t + 1)*np.sin(np.pi*x)*np.sin(np.pi*y) + Cy*np.pi*(t + 1)*np.sin(np.pi*x)*np.cos(np.pi*y) + Cx*np.pi*(t + 1)*np.sin(np.pi*y)*np.cos(np.pi*x) - D*np.pi**2*(t + 1)*np.cos(np.pi*x)*np.cos(np.pi*y) + np.sin(np.pi*x)*np.sin(np.pi*y)
+
+
 
 # Condition initiale
 u[0, :, :] = np.sin(np.pi * X) * np.sin(np.pi * Y)
@@ -41,8 +62,10 @@ for n in range(0, nt - 1):
         for j in range(1, ny - 1):
             diffusion = D * ((u[n, i + 1, j] - 2 * u[n, i, j] + u[n, i - 1, j]) / dx**2 +
                              (u[n, i, j + 1] - 2 * u[n, i, j] + u[n, i, j - 1]) / dy**2)
+            convection_x = -Cx * (u[n, i + 1, j] - u[n, i - 1, j]) / (2 * dx)  # Convection selon x
+            convection_y = -Cy * (u[n, i, j + 1] - u[n, i, j - 1]) / (2 * dy)  # Convection selon y
             source = function_f(x[i], y[j], t[n])
-            u[n + 1, i, j] = u[n, i, j] + dt * (diffusion + source)
+            u[n + 1, i, j] = u[n, i, j] + dt * (diffusion + convection_x + convection_y + source)
     u[n + 1, :, :] = apply_boundary_conditions(u[n + 1, :, :])
 
 # Calcul de l'erreur en norme L2
@@ -58,26 +81,14 @@ for n in range(nt):
 L2_error = np.sqrt(np.sum((u - u_exact_mat)**2) * dx * dy * dt)
 print(f"Erreur en norme L2: {L2_error}")
 
-# Affichage des résultats
-for n in range(0, nt, nt // 5):
-    plt.contourf(X, Y, u[n, :, :], cmap='hot')
-    plt.colorbar()
-    plt.title(f"Équation de la chaleur en 2D à t={n * dt:.2f}")
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.show()
-
-# Tracer l'erreur L2 en fonction du temps
-L2_error_time = np.sqrt(np.sum((u - u_exact_mat)**2, axis=(1, 2)) * dx * dy)
-
-plt.plot(t, L2_error_time, label="Erreur L2")
-plt.xlabel("Temps")
-plt.xscale('log')
-plt.yscale('log')
-plt.ylabel("Erreur L2")
-plt.legend()
-plt.grid()
+#Affichage des résultats pour t=1
+plt.contourf(X, Y, u[1, :, :], cmap='hot')
+plt.colorbar()
+plt.title(f"Équation de la chaleur en 2D à t={1:.2f}")
+plt.xlabel('x')
+plt.ylabel('y')
 plt.show()
+
 
 # Variation de température en fonction de x pour t donnés
 for n in range(0, nt, nt // 5):
@@ -88,3 +99,17 @@ plt.ylabel("Température u(x, y=L/2, t)")
 plt.legend()
 plt.title("Variation de la température en fonction de x pour différents t")
 plt.show()
+
+# Tracer l'erreur L2 en fonction du temps
+L2_error_time=np.linalg.norm(u-u_exact_mat,axis=(1,2))/np.linalg.norm(u_exact_mat,axis=(1,2))
+
+plt.figure()
+plt.plot(t, L2_error_time, label="Erreur L2")
+plt.xlabel("Temps")
+plt.xscale('log')
+plt.yscale('log')
+plt.ylabel("Erreur L2")
+plt.legend()
+plt.grid()
+plt.show()
+
