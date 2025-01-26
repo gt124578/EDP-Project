@@ -100,22 +100,6 @@ plt.show()
 L2_error = np.sqrt(np.sum((u - u_exact_mat)**2, axis=1) * dx)
 time = np.arange(0, nt) * dt
 
-# Tracer l'erreur L2 en fonction du temps
-plt.plot(time, L2_error, label="Erreur L2")
-plt.xlabel("Temps")
-plt.xscale('log')
-plt.yscale('log')
-plt.ylabel("Erreur L2")
-plt.legend()
-plt.title('Erreur L2 de u(x,t) par rapport à la solution exacte en fonction du temps')
-plt.grid()
-plt.show()
-
-
-
-
-
-
 #Etude de l'évolution de L2 pour différents dt
 
 dt_factors = [0.1, 0.5, 1.0]  # Facteurs de variation pour dt
