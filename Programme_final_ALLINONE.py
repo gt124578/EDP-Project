@@ -28,7 +28,7 @@ def determinate_f():
     du_dx_2 = sp.diff(du_dx, y)
     du_dt = sp.diff(u_ex, t)
     f = du_dt - D * du_dx_2 + C * du_dx
-    print(f)
+    #print(f)
     return f
 
 y, t = sp.symbols('y t')
@@ -86,9 +86,9 @@ plt.legend()
 plt.title("Evolution de la température en fonction de x avec l'équation de la chaleur en dimension 1 pour différents t")
 plt.show()
 L2_error = np.linalg.norm(u-u_exact_mat)
-print(f"Erreur en norme L2: {L2_error}")
+print(f"Erreur en norme L2 en 1D: {L2_error}")
 L2_relative=np.linalg.norm(u-u_exact_mat)/np.linalg.norm(u_exact_mat)
-print(f"Erreur relative L2: {(L2_relative)*100:.4f}%")
+print(f"Erreur relative L2 en 1D: {(L2_relative)*100:.4f}%")
 
 # Affichage
 plt.imshow(u, extent=[0, L, T, 0], aspect='auto', cmap='hot')
@@ -110,6 +110,9 @@ plt.legend()
 plt.title('Erreur L2 de u(x,t) par rapport à la solution exacte en fonction du temps')
 plt.grid()
 plt.show()
+
+
+
 
 
 
@@ -151,6 +154,9 @@ plt.title("Évolution de l'erreur L2 pour différents dt")
 plt.legend()
 plt.grid(True, which="both", linestyle="--", linewidth=0.5)
 plt.show()
+
+
+
 
 
 
@@ -218,7 +224,6 @@ dt = min(dx, dy)**2 / (4 * D)  # Pas de temps
 nt = int(T / dt)  # Discrétisation en temps
 Cx = 0.03  # Coefficient de convection selon x
 Cy = 0.02  # Coefficient de convection selon y
-print('--------------------------------',dx, min(np.sqrt(4*D*dt),abs(Cx)*dt))
 # Initialisation des matrices de température
 u = np.zeros((nt, nx, ny))
 x = np.linspace(0, Lx, nx)
@@ -237,7 +242,7 @@ def determinate_f_2D():
     du_dy_2 = sp.diff(du_dx, b)
     du_dt = sp.diff(u_ex, u)
     f = du_dt - D * (du_dx_2+du_dy_2) + Cx * du_dx + Cy * du_dy
-    print(f)
+    #print(f)
     return f
 
 # a, b, u = sp.symbols('a b u')
@@ -284,7 +289,7 @@ for n in range(nt):
             u_exact_mat[n, i, j] = u_exact(x[i], y[j], t[n])
 
 L2_error = np.sqrt(np.sum((u - u_exact_mat)**2) * dx * dy * dt)
-print(f"Erreur en norme L2: {L2_error}")
+print(f"Erreur relative L2 en 2D: {(L2_error)*100:.4f}%")
 
 #Affichage des résultats pour t=1
 plt.contourf(X, Y, u[1, :, :], cmap='hot')
