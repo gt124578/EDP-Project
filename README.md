@@ -1,119 +1,78 @@
-# EDP-Project
+# Numerical Simulation of the 1D & 2D Advection-Diffusion Equation
 
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)
 
-# Résolution d'Équations aux Dérivées Partielles (EDP) en Python
+This project presents a Python-based numerical solver for the 1D and 2D advection-diffusion equation, a fundamental Partial Differential Equation (PDE) used to model a wide variety of physical phenomena, such as heat transfer and particle transport.
 
-## Introduction
-Ce projet présente des solutions pour les équations aux dérivées partielles (EDP) en dimensions 1 et 2 en utilisant la méthode des différences finies en Python. Nous abordons l'équation de la chaleur en 1D et l'équation de Laplace en 2D.
+The primary objective was to implement a robust Finite Difference Method (FDM) scheme, analyze its accuracy against a known exact solution, and study its convergence properties with respect to spatial and temporal discretization steps.
 
-## Pré-requis
-- Python 3.10
-- Bibliothèques Python : numpy, matplotlib
+## Key Features
 
-Vous pouvez installer les bibliothèques nécessaires en utilisant pip :
-```bash
-pip install numpy matplotlib
+- **1D and 2D Solvers:** Implements a Forward-Time Centered-Space (FTCS) finite difference scheme for both 1D and 2D domains.
+- **Advection & Diffusion:** The model correctly simulates both diffusion (heat spreading) and convection (heat being carried by a flow) terms.
+- **Symbolic Source Term:** Utilizes the `SymPy` library to symbolically derive the required source term `f(x, t)` from a chosen exact solution, allowing for rigorous error analysis.
+- **L2 Norm Error Analysis:** Quantitatively measures the accuracy of the numerical solution by calculating the L2 norm of the error against the exact solution over time.
+- **Convergence Study:** Systematically analyzes the evolution of the L2 error for different spatial (`dx`) and temporal (`dt`) step sizes to validate the theoretical convergence rate of the numerical scheme.
+
+## Results & Visualizations
+
+The solver successfully simulates the evolution of the temperature field and its error metrics provide insight into the method's performance.
+
+### 1D Simulation: Temperature Evolution
+
+The animation below shows the evolution of the temperature profile `u(x, t)` along a 1D rod over time. The solution correctly adheres to the initial sinusoidal profile and the zero-value Dirichlet boundary conditions.
+
+![1D Evolution](results/1d_heat_evolution.png)
+
+### 2D Simulation: Heatmap
+
+This heatmap illustrates the temperature distribution `u(x, y, t)` on a 2D plate at a specific time `t`. The simulation captures the combined effects of diffusion spreading the heat and convection shifting the peak temperature.
+
+![2D Heatmap](results/2d_heatmap.png)
+
+### Convergence Analysis
+
+The plot below demonstrates the convergence of the numerical scheme. As the spatial discretization `dx` is refined (made smaller), the L2 error decreases, confirming the consistency and accuracy of the implementation.
+
+![Error vs dx](results/1d_error_vs_dx.png)
+
+## Methodology
+
+The project solves the advection-diffusion equation:
+
+$$ \frac{\partial u}{\partial t} = D \nabla^2 u - \vec{C} \cdot \nabla u + f(\vec{x}, t) $$
+
+Where:
+- `u` is the temperature field.
+- `D` is the diffusion coefficient.
+- `\vec{C}` is the convection velocity vector.
+- `f` is the source term.
+
+The numerical solution is obtained using a **Forward-Time Centered-Space (FTCS)** finite difference scheme. The simulation is stabilized by respecting the Courant-Friedrichs-Lewy (CFL) condition, which links the time step `dt` to the spatial step `dx`.
+
+## Repository Structure
+
+```
+.
+├── README.md
+├── requirements.txt
+├── EDP_Project_1D_and_2D.py         # Main script to run simulations and generate plots
+├── results/                # Directory for saved plot images
+    ├── 1D_Heat_Equation.png
+    ├── 1d_error_vs_dt.png
+    ├── 1d_error_vs_dx.png
+    ├── 1d_heat_evolution.png
+    ├── 2D_Heat_Equation.png
+    ├── 2d_error_vs_exact_solution.png
+    ├── 2d_heat_evolution_in_t.png
+    ├── output.txt          # Output in the console (L2 error in 1D and 2D)
 ```
 
-## Équations aux Dérivées Partielles (EDP)
+## How to Run
 
-### Dimension 1 : Équation de la chaleur
-L'équation de la chaleur en une dimension décrit la distribution de la température dans une barre au fil du temps :
-$$ \frac{\partial u}{\partial t} = \alpha \frac{\partial^2 u}{\partial x^2} $$
 
-### Dimension 2 : Équation de Laplace
-L'équation de Laplace en deux dimensions est utilisée pour modéliser des phénomènes tels que le potentiel électrique et les champs de température stationnaires :
-$$ \nabla^2 u = \frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0 $$
+## Dependencies
 
-## Implémentation en Python
-
-### Équation de la chaleur en 1D
-Voici un exemple de code pour résoudre l'équation de la chaleur en 1D :
-
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Paramètres
-L = 10.0     # Longueur de la barre
-T = 2.0      # Temps total
-nx = 100     # Nombre de points en espace
-nt = 1000    # Nombre de points en temps
-alpha = 0.01 # Diffusivité thermique
-
-dx = L / (nx - 1)   # Discrétisation en espace
-dt = T / nt         # Discrétisation en temps
-u = np.zeros(nx)    # Initialisation de la température
-u[int(nx/2)] = 1    # Condition initiale: un pic de chaleur au centre
-
-# Matrice de solution
-u_mat = np.zeros((nt, nx))
-u_mat[0, :] = u
-
-# Boucle temporelle
-for n in range(1, nt):
-    u_new = u.copy()
-    for i in range(1, nx-1):
-        u_new[i] = u[i] + alpha * dt / dx**2 * (u[i+1] - 2*u[i] - u[i-1])
-    u = u_new.copy()
-    u_mat[n, :] = u
-
-# Affichage
-plt.imshow(u_mat, extent=[0, L, T, 0], aspect='auto', cmap='hot')
-plt.colorbar()
-plt.xlabel('Position x')
-plt.ylabel('Temps t')
-plt.title('Évolution de la chaleur en 1D')
-plt.show()
-```
-
-### Équation de Laplace en 2D
-Voici un exemple de code pour résoudre l'équation de Laplace en 2D :
-
-```python
-import numpy as np
-import matplotlib.pyplot as plt
-
-# Paramètres
-Lx = 10.0     # Longueur en x
-Ly = 10.0     # Longueur en y
-nx = 50       # Nombre de points en x
-ny = 50       # Nombre de points en y
-
-dx = Lx / (nx - 1)
-dy = Ly / (ny - 1)
-u = np.zeros((ny, nx))
-
-# Conditions aux bords
-u[0, :] = 100  # Bord supérieur
-u[:, 0] = 0    # Bord gauche
-u[:, -1] = 0   # Bord droit
-u[-1, :] = 0   # Bord inférieur
-
-# Boucle de relaxation de Gauss-Seidel
-tolerance = 1e-6
-error = 1.0
-
-while error > tolerance:
-    u_new = u.copy()
-    for i in range(1, ny-1):
-        for j in range(1, nx-1):
-            u_new[i, j] = 0.25 * (u[i+1, j] + u[i-1, j] + u[i, j+1] + u[i, j-1])
-    error = np.linalg.norm(u_new - u)
-    u = u_new.copy()
-
-# Affichage
-plt.imshow(u, extent=[0, Lx, 0, Ly], origin='lower', cmap='hot')
-plt.colorbar()
-plt.xlabel('Position x')
-plt.ylabel('Position y')
-plt.title('Solution de l\'équation de Laplace en 2D')
-plt.show()
-```
-
-## Conclusion
-Ce projet présente des exemples de résolution d'EDP en utilisant la méthode des différences finies en Python. Vous pouvez utiliser ces exemples comme point de départ pour explorer et résoudre d'autres EDP dans vos propres projets.
-
-## Licence
-Ce projet est sous licence MIT. Consultez le fichier LICENSE pour plus d'informations.
-
+- NumPy
+- Matplotlib
+- SymPy
