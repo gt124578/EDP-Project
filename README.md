@@ -21,7 +21,7 @@ The core of this work lies in the **rigorous validation of the numerical scheme*
 ## 2. Methodology
 
 The project solves the advection-diffusion equation:
-$$ \frac{\partial u}{\partial t} = D \nabla^2 u - \vec{C} \cdot \nabla u + f(\vec{x}, t) $$
+\frac{\partial u}{\partial t} = D \nabla^2 u - \vec{C} \cdot \nabla u + f(\vec{x}, t)
 A **Forward-Time Centered-Space (FTCS)** finite difference scheme was implemented. The stability of this explicit scheme is ensured by respecting the Courant-Friedrichs-Lewy (CFL) condition, which constrains the time step `dt` relative to the spatial step `dx`.
 
 ## 3. Results and Analysis
