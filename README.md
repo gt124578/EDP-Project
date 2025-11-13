@@ -99,8 +99,17 @@ The 2D simulation models the temperature on a square plate. The results effectiv
 
 The final relative L2 error for the 2D simulation was found to be **14.5199%**.
 
-![2D Error Evolution](results/2d_error_vs_exact_solution.png)
-*Figure 7: Log-log plot of the 2D L2 error evolution over time.*
+<table>
+  <tr>
+    <td align="center"><strong>The final relative L2 error for the 2D simulation was found to be **14.5199%**.</strong></td>
+  </tr>
+  <tr>
+    <td><img src="results/2d_error_vs_exact_solution.png" width="600"></td>
+  </tr>
+  <tr>
+    <td align="center"><em>Figure 7: Log-log plot of the 2D L2 error evolution over time.</em></td>
+  </tr>
+</table>
 
 **Analysis:** The higher error in the 2D case is an expected and insightful result. It highlights the limitations of the simple FTCS scheme when applied to more complex, higher-dimensional problems. The accumulation of discretization errors over two spatial dimensions and time leads to a greater deviation from the exact solution. This result suggests that for higher accuracy in 2D, more advanced numerical schemes (e.g., Crank-Nicolson, higher-order methods) would be necessary. The analysis of this limitation is, in itself, a key finding of the project.
 
