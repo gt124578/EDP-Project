@@ -101,7 +101,7 @@ The final relative L2 error for the 2D simulation was found to be **14.5199%**.
 
 <table>
   <tr>
-    <td align="center"><strong>The final relative L2 error of `u(x, y, T)` for the 2D simulation</strong></td>
+    <td align="center"><strong>The final relative L2 error of u(x, y, T) for the 2D simulation</strong></td>
   </tr>
   <tr>
     <td><img src="results/2d_error_vs_exact_solution.png" width="600"></td>
