@@ -192,9 +192,13 @@ plt.show()
 
 
 
+
+
+
+
+
+
 #Etude de l'équation de la chaleur en dimension 2
-
-
 
 
 # Paramètres
